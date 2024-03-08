@@ -31,7 +31,18 @@ const userSchema = new mongoose.Schema({
     }
 })
 
+const resourceSchema = new mongoose.Schema({
+    name:{
+        type: String,
+        required: true,
+    },
+    url:{
+        type: String,
+        required: true,
+    }
+});
 
 const User = mongoose.model('User', userSchema);
+const Resource = mongoose.model('Resource', resourceSchema);
 
-module.exports = {User }
+module.exports = {User , Resource }
