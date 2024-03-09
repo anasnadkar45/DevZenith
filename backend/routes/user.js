@@ -1,6 +1,6 @@
 const express = require('express');
 const zod = require("zod");
-const { User , Account } = require('../db');
+const { User , Account, Resource } = require('../db');
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET} = require('../config')
 const {authMiddleware} = require('../middleware')
@@ -137,4 +137,26 @@ router.get("/bulk", async (req, res) => {
     })
 })
 
+// router.post('/addresource', async (req, res) => {
+//     try {
+//         const newResource = await Resource.create({
+//             name: req.body.name,
+//             url: req.body.url,
+//         })
+//         if (newResource) {
+//             console.log(newResource)
+//         } else {
+//             console.log("something went wrong")
+//         }
+//         return res.status(200).json({
+//             message: "Resource added successfully",
+//         })
+//     } catch (err) {
+//         console.error(err)
+//         return res.status(500).json({
+//             success: false,
+//             message: err.message
+//         })
+//     }
+// })
 module.exports = router;

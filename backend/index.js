@@ -10,4 +10,6 @@ app.use(cors());
 
 app.use('/api/v1',rootRouter)
 
-app.listen(3000);
+app.listen(3000 , () =>{
+    console.log('listening on port 3000')
+});
