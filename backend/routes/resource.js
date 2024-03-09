@@ -6,6 +6,7 @@ router.post('/addresource', async (req, res) => {
     try {
         const newResource = await Resource.create({
             name: req.body.name,
+            description: req.body.description,
             url: req.body.url,
         })
         if (newResource) {
