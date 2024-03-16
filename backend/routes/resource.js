@@ -2,6 +2,7 @@ const express = require('express');
 const { Resource } = require('../db');
 const router = express.Router();
 
+// add resources
 router.post('/addresource', async (req, res) => {
     try {
         const newResource = await Resource.create({
@@ -26,6 +27,37 @@ router.post('/addresource', async (req, res) => {
     }
 })
 
+// delete a resource
+router.delete('/deleteResource/:id', async (req, res) => {
+    const resourceId = req.params.id;
+
+    try {
+        const deletedResource = await Resource.findByIdAndDelete(resourceId);
+
+        if (deletedResource) {
+            console.log("Resource deleted successfully:", deletedResource);
+            return res.status(200).json({
+                success: true,
+                message: "Resource deleted successfully"
+            });
+        } else {
+            console.log("Resource not found");
+            return res.status(404).json({
+                success: false,
+                message: "Resource not found"
+            });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+});
+
+
+// get all resources
 router.get('/resourcesList', async (req, res) => {
     try {
         const resources = await Resource.find(); // Retrieve all resources from the database
