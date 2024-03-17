@@ -80,8 +80,9 @@ router.post('/signin', async (req, res) => {
             userId: user._id
         }, JWT_SECRET);
 
-        res.json({
-            token: token
+        return res.json({
+            token: token,
+            message : console.log(token)
         })
         return;
     }

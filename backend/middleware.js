@@ -1,13 +1,12 @@
-const {JWT_SECRET} = require('./config');
+const { JWT_SECRET } = require('./config');
 const jwt = require("jsonwebtoken");
-
 
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         console.log('Invalid or missing Authorization header');
-        return res.status(403).json({});
+        return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
     }
 
     const token = authHeader.split(' ')[1];
@@ -20,13 +19,10 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (err) {
         console.error('Error verifying JWT:', err);
-        return res.status(403).json({
-            message: "Error"
-        });
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
 };
 
-
 module.exports = {
     authMiddleware
-}
+};
