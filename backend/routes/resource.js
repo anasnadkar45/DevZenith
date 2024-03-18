@@ -1,65 +1,68 @@
+// Import necessary modules
 const express = require('express');
-const { Resource } = require('../db');
+const { Resource, User } = require('../db');
+const zod = require('zod');
 const router = express.Router();
-const {authMiddleware} = require('../middleware'); // Importing authMiddleware
+const { authMiddleware } = require('../middleware');
 
-// add resources with authentication middleware
+// Define resource schema for validation
+const resourceBody = zod.object({
+    name: zod.string(),
+    description: zod.string(),
+    url: zod.string().url()
+});
+
+// Route to add a new resource for the authenticated user
 router.post('/addresource', authMiddleware, async (req, res) => {
     try {
-        const newResource = await Resource.create({
-            name: req.body.name,
-            description: req.body.description,
-            url: req.body.url,
-        });
-        if (newResource) {
-            console.log(newResource);
-            return res.status(200).json({
-                message: "Resource added successfully",
-            });
-        } else {
-            console.log("something went wrong");
-            return res.status(500).json({
-                success: false,
-                message: "Failed to add resource",
-            });
+        // Validate request body
+        const { success, data } = resourceBody.safeParse(req.body);
+        if (!success) {
+            return res.status(400).json({ message: 'Invalid resource data' });
         }
+
+        // Create new resource with creator ID
+        const newResource = await Resource.create({
+            ...data,
+            creator: req.userId
+        });
+
+        // Find the user by ID and update the resources array
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.resources.push(newResource); // Add the new resource to the resources array
+
+        // Save the updated user document
+        await user.save();
+
+        // Return success response
+        return res.status(200).json({
+            message: 'Resource added successfully',
+            resource: newResource
+        });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({
-            success: false,
-            message: err.message
-        });
+        return res.status(500).json({ message: 'Failed to add resource' });
     }
 });
 
-// delete a resource
-// router.delete('/deleteResource/:id', async (req, res) => {
-//     const resourceId = req.params.id;
 
-//     try {
-//         const deletedResource = await Resource.findByIdAndDelete(resourceId);
+// Route to fetch resources of the authenticated user
+router.get('/user-resources', authMiddleware, async (req, res) => {
+    try {
+        // Fetch resources where creator ID matches authenticated user ID
+        const userResources = await Resource.find({ creator: req.userId });
 
-//         if (deletedResource) {
-//             console.log("Resource deleted successfully:", deletedResource);
-//             return res.status(200).json({
-//                 success: true,
-//                 message: "Resource deleted successfully"
-//             });
-//         } else {
-//             console.log("Resource not found");
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "Resource not found"
-//             });
-//         }
-//     } catch (err) {
-//         console.error(err);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Internal server error"
-//         });
-//     }
-// });
+        // Send the resources as a JSON response
+        res.json(userResources);
+    } catch (err) {
+        // Handle errors
+        res.status(500).json({ message: err.message });
+    }
+});
 
 
 // get all resources
@@ -67,9 +70,11 @@ router.get('/resourcesList', async (req, res) => {
     try {
         const resources = await Resource.find(); // Retrieve all resources from the database
         res.json(resources); // Send the resources as a JSON response
-      } catch (err) {
+    } catch (err) {
         res.status(500).json({ message: err.message }); // Handle errors
-      }
+    }
 })
+
+
 
 module.exports = router;
