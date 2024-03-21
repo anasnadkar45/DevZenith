@@ -66,7 +66,7 @@ router.get('/user-resources', authMiddleware, async (req, res) => {
 
 
 // get all resources
-router.get('/resourcesList', async (req, res) => {
+router.get('/resourcesList', authMiddleware, async (req, res) => {
     try {
         const resources = await Resource.find(); // Retrieve all resources from the database
         res.json(resources); // Send the resources as a JSON response

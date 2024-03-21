@@ -113,30 +113,31 @@ router.put('/', authMiddleware , async(req,res) => {
     })
 })
 
-router.get("/bulk", async (req, res) => {
-    const filter = req.query.filter || "";
+router.get('/user-profile', authMiddleware, async (req, res) => {
+    try {
+        // Find the user by ID retrieved from the token
+        const user = await User.findById(req.userId);
+        console.log(user);
+        
+        // Check if the user exists
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    const users = await User.find({
-        $or: [{
-            firstName: {
-                "$regex": filter
-            }
-        }, {
-            lastName: {
-                "$regex": filter
-            }
-        }]
-    })
-
-    res.json({
-        user: users.map(user => ({
+        // Exclude sensitive data like password before sending the response
+        const userProfile = {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            _id: user._id
-        }))
-    })
-})
+            // Add more fields as needed
+        };
+
+        res.json(userProfile);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 // router.post('/addresource', async (req, res) => {
 //     try {
