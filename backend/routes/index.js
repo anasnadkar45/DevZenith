@@ -5,6 +5,6 @@ const resourceRouter = require('./resource')
 const router = express.Router();
 
 router.use('/user', userRouter);
-router.use('/add' , resourceRouter)
+router.use('/resources' , resourceRouter)
 
 module.exports = router;

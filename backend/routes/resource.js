@@ -49,20 +49,25 @@ router.post('/addresource', authMiddleware, async (req, res) => {
     }
 });
 
+// delete the resource
+router.delete('/deleteresource/:id', authMiddleware, async (req, res) => {
+    try{
+        const deleteResource = await Resource.findByIdAndDelete(req.params.id);
+        if(!deleteResource){
+            return res.status(404).json({ 
+                success: false,
+                message: 'Resource not found'
+            })
+        }
 
-// Route to fetch resources of the authenticated user
-router.get('/user-resources', authMiddleware, async (req, res) => {
-    try {
-        // Fetch resources where creator ID matches authenticated user ID
-        const userResources = await Resource.find({ creator: req.userId });
-
-        // Send the resources as a JSON response
-        res.json(userResources);
-    } catch (err) {
-        // Handle errors
-        res.status(500).json({ message: err.message });
+        return res.status(200).json({
+            success: true,
+            message: 'Resource deleted successfully'
+        })
+    }catch (err) {
+        res.status(500).send(err);
     }
-});
+})
 
 
 // get all resources
