@@ -1,6 +1,6 @@
 const express = require('express');
-const userRouter = require('./user');
-const resourceRouter = require('./resource')
+const userRouter = require('../routes/user');
+const resourceRouter = require('../routes/resource')
 
 const router = express.Router();
 

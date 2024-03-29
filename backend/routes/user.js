@@ -1,143 +1,151 @@
 const express = require('express');
-const zod = require("zod");
-const { User , Account, Resource } = require('../db');
-const jwt = require("jsonwebtoken");
-const {JWT_SECRET} = require('../config')
-const {authMiddleware} = require('../middleware')
+const { signin, signup, profile } = require('../controllers/Auth');
+const { authMiddleware } = require('../middleware');
 const router = express.Router();
 
+// ********************************************************************************************************
+//                                      Authentication routes
+// ********************************************************************************************************
 
+// Route for user login
+router.post("/signin", signin)
 
-// Adding new user to DB
-const signupBody = zod.object({
-    username: zod.string().email(),
-    firstName : zod.string(),
-    lastName : zod.string(),
-    password : zod.string(),
-})
+// Route for user signup
+router.post("/signup", signup)
 
-router.post('/signup', async(req, res) => {
-    const {success} = signupBody.safeParse(req.body);
+// user profile
+router.get("/user-profile",authMiddleware, profile);
+
+// // Adding new user to DB
+// const signupBody = zod.object({
+//     username: zod.string().email(),
+//     firstName : zod.string(),
+//     lastName : zod.string(),
+//     password : zod.string(),
+// })
+
+// router.post('/signup', async(req, res) => {
+//     const {success} = signupBody.safeParse(req.body);
     
-    if(!success) {
-        return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
-        })
-    }
+//     if(!success) {
+//         return res.status(411).json({
+//             message: "Email already taken / Incorrect inputs"
+//         })
+//     }
 
-    const existingUser = await User.findOne({
-        username: req.body.username
-    });
+//     const existingUser = await User.findOne({
+//         username: req.body.username
+//     });
 
-    if(existingUser){
-        return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
-        })
-    }
+//     if(existingUser){
+//         return res.status(411).json({
+//             message: "Email already taken / Incorrect inputs"
+//         })
+//     }
 
-    const newUser = await User.create({
-        username : req.body.username,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        password: req.body.password
-    })
+//     const newUser = await User.create({
+//         username : req.body.username,
+//         firstName: req.body.firstName,
+//         lastName: req.body.lastName,
+//         password: req.body.password
+//     })
 
-    const userId = newUser._id;
+//     const userId = newUser._id;
 
-    console.log('JWT_SECRET:', JWT_SECRET);
+//     console.log('JWT_SECRET:', JWT_SECRET);
 
-    const token = jwt.sign({
-        userId
-    },JWT_SECRET)
+//     const token = jwt.sign({
+//         userId
+//     },JWT_SECRET)
 
-    res.json({
-        message: "User created successfully",
-        token: token
-    })
-})
+//     res.json({
+//         message: "User created successfully",
+//         token: token
+//     })
+// })
 
-const signinBody = zod.object({
-    username: zod.string().email(),
-    password : zod.string(),
-})
+// const signinBody = zod.object({
+//     username: zod.string().email(),
+//     password : zod.string(),
+// })
 
-router.post('/signin', async (req, res) => {
-    const {success} = signinBody.safeParse(req.body);
+// router.post('/signin', async (req, res) => {
+//     const {success} = signinBody.safeParse(req.body);
 
-    if(!success) {
-        res.status(411).json({
-            message:'Error while logging in'
-        })
-    }
+//     if(!success) {
+//         res.status(411).json({
+//             message:'Error while logging in'
+//         })
+//     }
 
-    const user = await User.findOne({
-        username: req.body.username,
-        password: req.body.password
-    });
+//     const user = await User.findOne({
+//         username: req.body.username,
+//         password: req.body.password
+//     });
 
-    if(user){
-        const token = jwt.sign({
-            userId: user._id
-        }, JWT_SECRET);
+//     if(user){
+//         const token = jwt.sign({
+//             userId: user._id
+//         }, JWT_SECRET);
 
-        return res.json({
-            token: token,
-            message : console.log(token)
-        })
-        return;
-    }
+//         return res.json({
+//             token: token,
+//             message : console.log(token)
+//         })
+//         return;
+//     }
 
-    res.status(411).json({
-        message: "Error while logging in"
-    })
-})
+//     res.status(411).json({
+//         message: "Error while logging in"
+//     })
+// })
 
-const updateBody = zod.object({
-    password: zod.string().optional(),
-    firstName: zod.string().optional(),
-    lastName: zod.string().optional(),
-});
+// const updateBody = zod.object({
+//     password: zod.string().optional(),
+//     firstName: zod.string().optional(),
+//     lastName: zod.string().optional(),
+// });
 
-router.put('/', authMiddleware , async(req,res) => {
-    const {success} = updateBody.safeParse(req.body);
-    if(!success) {
-        res.status(411).json({
-            message: "Error while updating information"
-        })
-    }
+// router.put('/', authMiddleware , async(req,res) => {
+//     const {success} = updateBody.safeParse(req.body);
+//     if(!success) {
+//         res.status(411).json({
+//             message: "Error while updating information"
+//         })
+//     }
 
-    await User.updateOne({ _id: req.userId }, req.body);
+//     await User.updateOne({ _id: req.userId }, req.body);
 
-    res.json({
-        message: "Updated successfully"
-    })
-})
+//     res.json({
+//         message: "Updated successfully"
+//     })
+// })
 
-router.get('/user-profile', authMiddleware, async (req, res) => {
-    try {
-        // Find the user by ID retrieved from the token
-        const user = await User.findById(req.userId);
-        console.log(user);
+// router.get('/user-profile', authMiddleware, async (req, res) => {
+//     try {
+//         // Find the user by ID retrieved from the token
+//         const user = await User.findById(req.userId);
+//         console.log(user);
         
-        // Check if the user exists
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+//         // Check if the user exists
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
 
-        // Exclude sensitive data like password before sending the response
-        const userProfile = {
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            // Add more fields as needed
-        };
+//         // Exclude sensitive data like password before sending the response
+//         const userProfile = {
+//             username: user.username,
+//             firstName: user.firstName,
+//             lastName: user.lastName,
+//             // Add more fields as needed
+//         };
 
-        res.json(userProfile);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
+//         res.json(userProfile);
+//     } catch (err) {
+//         console.error(err.message);
+//         res.status(500).send('Server Error');
+//     }
+// });
 
 // router.post('/addresource', async (req, res) => {
 //     try {

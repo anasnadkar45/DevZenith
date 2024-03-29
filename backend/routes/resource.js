@@ -1,85 +1,12 @@
 // Import necessary modules
 const express = require('express');
-const { Resource, User } = require('../db');
-const zod = require('zod');
 const router = express.Router();
+const { resourcesList, addResource, deleteResource } = require('../controllers/Resource');
 const { authMiddleware } = require('../middleware');
 
-// Define resource schema for validation
-const resourceBody = zod.object({
-    name: zod.string(),
-    description: zod.string(),
-    url: zod.string().url()
-});
-
-// Route to add a new resource for the authenticated user
-router.post('/addresource', authMiddleware, async (req, res) => {
-    try {
-        // Validate request body
-        const { success, data } = resourceBody.safeParse(req.body);
-        if (!success) {
-            return res.status(400).json({ message: 'Invalid resource data' });
-        }
-
-        // Create new resource with creator ID
-        const newResource = await Resource.create({
-            ...data,
-            creator: req.userId
-        });
-
-        // Find the user by ID and update the resources array
-        const user = await User.findById(req.userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        user.resources.push(newResource); // Add the new resource to the resources array
-
-        // Save the updated user document
-        await user.save();
-
-        // Return success response
-        return res.status(200).json({
-            message: 'Resource added successfully',
-            resource: newResource
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Failed to add resource' });
-    }
-});
-
-// delete the resource
-router.delete('/deleteresource/:id', authMiddleware, async (req, res) => {
-    try{
-        const deleteResource = await Resource.findByIdAndDelete(req.params.id);
-        if(!deleteResource){
-            return res.status(404).json({ 
-                success: false,
-                message: 'Resource not found'
-            })
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: 'Resource deleted successfully'
-        })
-    }catch (err) {
-        res.status(500).send(err);
-    }
-})
-
-
-// get all resources
-router.get('/resourcesList', authMiddleware, async (req, res) => {
-    try {
-        const resources = await Resource.find(); // Retrieve all resources from the database
-        res.json(resources); // Send the resources as a JSON response
-    } catch (err) {
-        res.status(500).json({ message: err.message }); // Handle errors
-    }
-})
-
-
+// Route for user resource 
+router.post("/addresource", authMiddleware, addResource)
+router.delete('/deleteresource/:id' , authMiddleware, deleteResource)
+router.get('/resourcesList', authMiddleware ,resourcesList)
 
 module.exports = router;
