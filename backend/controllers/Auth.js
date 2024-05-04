@@ -87,28 +87,54 @@ exports.signin = async (req, res) => {
     }
 };
 
-exports.updateUserProfile = async (req, res) => {
-    const user = await User.findById(req.user._id);
-  
-    if (user) {
-      user.username = req.body.username || user.username;
-      user.firstName = req.body.firstName || user.firstName;
-      user.lastName = req.body.lastName || user.lastName;
-      if (req.body.password) {
-        user.password = req.body.password;
-      }
-  
-      const updatedUser = await user.save();
-      const token = jwt.sign({ userId: newUser._id }, JWT_SECRET);
-      res.json({
-        _id: updatedUser._id,
-        username: updatedUser.username,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        token: token,
-      });
-    } else {
-      res.status(404);
-      throw new Error("User Not Found");
+exports.profile = async (req, res) => {
+    try {
+        // Find the user by ID from the request object
+        const user = await User.findById(req.user.userId); // Assuming userId is stored in the JWT payload
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // If user found, send profile information
+        res.json({
+            _id: user._id,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName
+            // Add other profile fields as needed
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
+// exports.updateUserProfile = async (req, res) => {
+//     // if (!req.user) {
+//     //     throw new Error("User not authenticated");
+//     // }
+    
+//     const user = await User.findById(req.user._id);
+  
+//     if (user) {
+//       user.username = req.body.username || user.username;
+//       user.firstName = req.body.firstName || user.firstName;
+//       user.lastName = req.body.lastName || user.lastName;
+//       if (req.body.password) {
+//         user.password = req.body.password;
+//       }
+  
+//       const updatedUser = await user.save();
+//       const token = jwt.sign({ userId: newUser._id }, JWT_SECRET);
+//       res.json({
+//         _id: updatedUser._id,
+//         username: updatedUser.username,
+//         firstName: updatedUser.firstName,
+//         lastName: updatedUser.lastName,
+//         token: token,
+//       });
+//     } else {
+//       res.status(404);
+//       throw new Error("User Not Found");
+//     }
+// };
