@@ -1,5 +1,5 @@
 const express = require('express');
-const { signin, signup, profile } = require('../controllers/Auth');
+const { signin, signup, updateUserProfile } = require('../controllers/Auth');
 const { authMiddleware } = require('../middleware');
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.post("/signin", signin)
 router.post("/signup", signup)
 
 // user profile
-router.get("/user-profile",authMiddleware, profile);
+router.get("/user-profile",authMiddleware, updateUserProfile);
 
 // // Adding new user to DB
 // const signupBody = zod.object({
