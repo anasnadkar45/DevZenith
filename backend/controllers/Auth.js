@@ -90,7 +90,7 @@ exports.signin = async (req, res) => {
 exports.profile = async (req, res) => {
     try {
         // Find the user by ID from the request object
-        const user = await User.findById(req.user.userId); // Assuming userId is stored in the JWT payload
+        const user = await User.findById(req.userId); // Assuming userId is stored in the JWT payload
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });

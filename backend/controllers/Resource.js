@@ -105,12 +105,14 @@ exports.deleteResource = async (req, res) => {
 
 exports.editResource = async (req, res) => {
     try {
-        const editResource = await Resource.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!editResource) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resource not found'
-            });
+        const { success, data } = resourceBody.safeParse(req.body);
+        if (!success) {
+            return res.status(400).json({ message: 'Invalid resource data' });
+        }
+
+        const updatedResource = await Resource.findByIdAndUpdate(req.params.id, data, { new: true });
+        if (!updatedResource) {
+            return res.status(404).json({ message: 'Resource not found' });
         }
 
         return res.status(200).json({
@@ -119,9 +121,11 @@ exports.editResource = async (req, res) => {
             data: updatedResource
         });
     } catch (err) {
-        res.status(500).send(err);
+        console.error(err);
+        return res.status(500).json({ message: 'Failed to update resource' });
     }
-}
+};
+
 // Route to get all resources
 exports.resourcesList = async (req, res) => {
     try {
